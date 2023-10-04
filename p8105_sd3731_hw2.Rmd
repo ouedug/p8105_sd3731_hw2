@@ -167,4 +167,80 @@ equals to `r trash3 |> filter(month == "July" & year == 2021) |> pull(cigarette_
 
 ## Problem 3
 
+### Demographic Dataset
+
+```{r}
+baseline <- 
+  
+  read_csv("./hw2_data/P3_data_mci/MCI_baseline.csv", skip = 1) |> 
+ 
+  janitor::clean_names() |>
+ 
+  mutate(sex = recode(sex, "0" = "Female", "1" = "Male"), 
+         apoe4 = recode(apoe4, "0" = "non-carrier", "1" = "carrier"))
+```
+
+There are `r nrow(baseline)` observations and `r ncol(baseline)` variables in this dataset.
+
+There are `r dim(baseline)[1]` participants are recruited.
+
+The average age of baseline is `r mean(pull(baseline, current_age))`.
+
+There are `r dim(filter(baseline, apoe4 == "carrier" & sex == "Female"))[1] / dim(filter(baseline, sex == "Female"))[1] * 100`% of women in the study are APOE4 carriers. 
+
+
+```{r}
+mci_baseline <- filter(baseline, age_at_onset != ".")
+mci_baseline
+```
+There are `r nrow(mci_baseline)` observations and `r ncol(mci_baseline)` variables. 
+
+And there are `r dim(mci_baseline)[1]` participants developed MCI.
+
+
+### Biomarker Dataset
+
+```{r}
+amyloid <- 
+  read_csv("./hw2_data/P3_data_mci/mci_amyloid.csv", skip = 1) |>
+
+  janitor::clean_names()  
+```
+
+There are `r nrow(amyloid)` observations and `r ncol(amyloid)` variables in this dataset.
+
+
+### Data Combination
+
+```{r}
+
+both_id <- intersect(pull(baseline, id), pull(amyloid, study_id))
+
+only_baseline <- c()
+for(id in pull(baseline, id)){
+  if (!id %in% both_id)
+    only_baseline <- append(only_baseline, id)
+}
+
+only_amyloid <- c()
+for(id in pull(amyloid, study_id)){
+  if (!id %in% both_id)
+    only_amyloid <- append(only_amyloid, id)
+}
+only_baseline
+only_amyloid
+```
+
+There are `r length(only_baseline)` participants only in baseline dataset, and `r length(only_amyloid)` participants only in amyloid dataset.
+
+```{r}
+participants <- inner_join(baseline, amyloid, by = join_by(id == study_id))
+participants
+```
+
+After combining datasets with `id` variable, the result are of `r nrow(participants)` observations and `r ncol(participants)` variables.
+
+```{r}
+write_csv(participants, "./hw2_output/hw2_p3_output.csv")
+```
 
