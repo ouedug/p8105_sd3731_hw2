@@ -81,14 +81,90 @@ res <- left_join(res, unemploy, by = join_by(month == month, year == year))
 
 ## Problem 2
 
+Read and clean the Mr. Trash Wheel sheet:
+
+*specify the sheet in the Excel file and to omit non-data entries (rows with notes / figures; columns containing notes) using arguments in read_excel
+*use reasonable variable names
+*omit rows that do not include dumpster-specific data
+
+1.Tidy "Mr.Trash Wheel" sheet
+
 ```{r}
+trash1 <- 
 
+  readxl::read_excel("./hw2_data/P2_Trash Wheel Collection Data.xlsx", sheet = 1, skip = 1) |> 
+
+  janitor::clean_names() |>
+
+  janitor::remove_empty(which = "cols") |>
+  
+  filter(!is.na(dumpster)) |>
+
+  mutate(homes_powered = 500 * weight_tons + 30,
+
+         year = as.character(year))
 ```
 
+There are `r nrow(trash1)` observations and `r ncol(trash1)` variables in the datasets.
 
-```{r cars}
-summary(cars)
+2.Tidy "Professor Trash Wheel" sheet
+
+```{r}
+trash2 <- 
+  
+  readxl::read_excel("./hw2_data/P2_Trash Wheel Collection Data.xlsx", sheet = 2, skip = 1) |> 
+
+  janitor::clean_names() |>
+  
+  janitor::remove_empty(which = "cols") |>
+  
+  filter(!is.na(dumpster)) |>
+
+  mutate(homes_powered = 500 * weight_tons + 30,
+       
+         year = as.character(year))
 ```
 
-## Including Plots
+There are `r nrow(trash2)` observations and `r ncol(trash2)` variables in the datasets.
+
+3.Tidy "Gwynnda Trash Wheel" sheet
+
+```{r}
+trash3 <- 
+  
+  readxl::read_excel("./hw2_data/P2_Trash Wheel Collection Data.xlsx", sheet = 3, skip = 1) |> 
+  
+  janitor::clean_names() |>
+  
+  janitor::remove_empty(which = "cols") |>
+  
+  filter(!is.na(dumpster)) |>
+  
+  mutate(homes_powered = 500 * weight_tons + 30,
+         
+         year = as.character(year))
+```
+
+There are `r nrow(trash3)` observations and `r ncol(trash3)` variables in the datasets.
+
+### Data Combination
+
+```{r}
+total_trash <- bind_rows(
+  list("Mr. Trash Wheel" = trash1, 
+       "Professor Trash Wheel" = trash2, 
+       "Gwynnda Trash Wheel" = trash3), .id = "source")
+```
+
+There are `r nrow(total_trash)` observations and `r ncol(total_trash)` variables in the datasets. 
+
+### questions:  
+
+The total weight of trash collected by Professor Trash Wheel equals to `r sum(pull(trash2, weight_tons))`. 
+
+The total number of cigarette butts collected by Gwynnda in July of 2021
+equals to `r trash3 |> filter(month == "July" & year == 2021) |> pull(cigarette_butts) |> sum()`.
+
+## Problem 3
+
 
