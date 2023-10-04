@@ -5,12 +5,85 @@ date: "2023-10-04"
 output: github_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r setup}
+library(tidyverse)
+library(readxl)
 ```
 
-## R Markdown
+## Problem 1
 
+1.Tidy 'pols-month.csv'
+
+```{r}
+pols <- 
+  # load data
+  read_csv("./hw2_data/P1_fivethirtyeight_datasets/pols-month.csv") |> 
+  # clean column name
+  janitor::clean_names() |> 
+  # separate date into 'year', 'month', 'day'
+  separate(mon, c("year", "month","day"), convert = TRUE, sep = '-') |> 
+  # change month number to month name
+  mutate(month = month(month, label = TRUE), 
+         # create 'president' variable according to value of 'prez_gop' variable
+         president = recode(
+           prez_gop, 
+           "0" = "dem", 
+           "1" = "gop",
+           "2" = "gop"
+         )) |>
+  # remove some columns
+  select(-c(day, prez_dem, prez_gop)) 
+```
+
+2.Tidy 'snp.csv'
+
+```{r}
+snp <- 
+  # load data
+  read_csv("./hw2_data/P1_fivethirtyeight_datasets/snp.csv", 
+           col_types = cols(date = col_date(format = "%m/%d/%y"))) |>
+  # clean column name
+  janitor::clean_names() |>  
+  # separate date into 'year', 'month', 'day'
+  separate(date, c("year", "month","day"), convert = TRUE) |>
+  mutate(
+    # change month number to month name
+    month = month(month, label = TRUE),
+    # change year format
+    year = if_else(year > 2023, year - 100, year)) |> 
+  # arrange columns
+  arrange(year, month) |> 
+  # remove some columns
+  select(-day)
+```
+
+3.Tidy 'unemployment.csv'
+
+```{r}
+unemploy <- 
+  # load data
+  read.csv("./hw2_data/P1_fivethirtyeight_datasets/unemployment.csv") |>
+  # clean column name
+  janitor::clean_names()  |>
+  # switch "wide" to "long" format
+  pivot_longer(-year, names_to = "month", values_to = "unemploy_rate") |> 
+  # capitalize first letter to ensure same values in key variable
+  mutate(month = str_to_title(month))  
+```
+
+### data merge
+
+```{r}
+#Join datasets (Merge)
+res <- left_join(pols, snp, by = join_by(month == month, year == year))
+res <- left_join(res, unemploy, by = join_by(month == month, year == year))
+```
+
+## Problem 2
+
+```{r}
+
+```
 
 
 ```{r cars}
